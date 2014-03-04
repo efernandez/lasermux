@@ -27,6 +27,11 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/LaserScan.h>
 #include <pcl_ros/transforms.h>
+#include <pcl_conversions/pcl_conversions.h>
+#include <boost/foreach.hpp>
+#include <math.h>
+
+#define foreach BOOST_FOREACH
 
 namespace lasermux
 {
@@ -54,11 +59,50 @@ void VirtualLaser::setParams(
   angle_min_ = angle_min;
   angle_max_ = angle_max;
   angle_increment_ = angle_increment;
+
+  latest_scan_->ranges.resize((int)(angle_max_ - angle_min_)/angle_increment_ + 1);
+  latest_scan_->range_min = range_min_;
+  latest_scan_->range_max = range_max_;
+  latest_scan_->angle_min = angle_min_;
+  latest_scan_->angle_max = angle_max_;
+  latest_scan_->header.frame_id = frame_id_;
 }
 
 void VirtualLaser::updateScanWithPC(const sensor_msgs::PointCloud2ConstPtr& pc)
 {
-// TODO: implement something here
+  pcl::PointCloud<pcl::PointXYZ> cloud;
+  pcl::fromROSMsg (*pc, cloud);
+
+  foreach (const pcl::PointXYZ& p, cloud)
+  {
+    // discard points outside of the aperture
+    double ang = atan2(p.y, p.x);
+    double min = angle_min_ - angle_increment_/2;
+    double max = angle_max_ + angle_increment_/2;
+    if (ang < min || ang > max)
+    {
+      continue;
+    }
+
+    // discard points that are too high/low
+    double dist = sqrt(p.x*p.x + p.y*p.y);
+    double max_height = angle_increment_/2 * dist;
+    if (fabs(p.z) > max_height)
+    {
+      continue;
+    }
+
+    // discard points that are too far/close
+    if (dist > range_max_ || dist < range_min_)
+    {
+      continue;
+    }
+
+    // update scan
+    int index = (int) (ang + angle_increment_/2 - angle_min_) / angle_increment_;
+    latest_scan_->ranges[index] = dist;
+  }
+  latest_scan_->header.stamp = ros::Time::now();
 }
 
 void VirtualLaser::takePointCloud(const sensor_msgs::PointCloud2ConstPtr& pc)
