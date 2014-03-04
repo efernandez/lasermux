@@ -23,8 +23,9 @@
 
 
 #include <ros/node_handle.h>
-#include <ros/forward_declare.h>
+#include <ros/message_forward.h>
 #include <tf/transform_listener.h>
+#include <laser_geometry/laser_geometry.h>
 
 namespace sensor_msgs
 {
@@ -40,6 +41,18 @@ class VirtualLaser
 public:
     VirtualLaser(const ros::NodeHandle& nh = ros::NodeHandle());
     virtual ~VirtualLaser();
+
+    /**
+     * \brief Set virtual laser parameters. See sensor_msgs::LaserScan
+     */
+    void setParams(
+            const std::string& frame_id,
+            double range_min,
+            double range_max,
+            double angle_min,
+            double angle_max,
+            double angle_increment
+            );
 
     /**
      * @brief Update virtual laser with a point cloud
@@ -71,8 +84,9 @@ private:
     double      angle_max_;
     double      angle_increment_;
 
-    ros::NodeHandle       nh_;
+    ros::NodeHandle nh_;
     tf::TransformListener tfl_;
+    laser_geometry::LaserProjection projector_;
 };
 
 }

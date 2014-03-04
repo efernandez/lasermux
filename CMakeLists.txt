@@ -1,11 +1,13 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(lasermux)
 
-find_package(catkin REQUIRED)
+find_package(catkin REQUIRED roscpp laser_geometry tf sensor_msgs)
 
 catkin_package()
 
-add_library(lasermux src/lasermux.cpp)
+include_directories(include ${catkin_INCLUDE_DIRS})
+
+add_library(lasermux src/virtual_laser.cpp)
 target_link_libraries(lasermux ${catkin_LIBRARIES})
 
 add_executable(lasermux_node src/lasermux_node.cpp)
