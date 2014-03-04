@@ -39,7 +39,9 @@ namespace lasermux
 VirtualLaser::VirtualLaser(const ros::NodeHandle& nh)
   : nh_(nh)
   , tfl_(nh)
-{ }
+{
+  latest_scan_.reset(new sensor_msgs::LaserScan);
+}
 
 VirtualLaser::~VirtualLaser()
 { }
