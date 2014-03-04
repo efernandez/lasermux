@@ -67,6 +67,7 @@ void VirtualLaser::setParams(
   latest_scan_->range_max = range_max_;
   latest_scan_->angle_min = angle_min_;
   latest_scan_->angle_max = angle_max_;
+  latest_scan_->angle_increment = angle_increment_;
   latest_scan_->header.frame_id = frame_id_;
 }
 
