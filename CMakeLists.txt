@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(lasermux)
 
-find_package(catkin REQUIRED roscpp laser_geometry tf sensor_msgs)
+find_package(catkin REQUIRED roscpp laser_geometry tf sensor_msgs pcl_ros)
 
 catkin_package()
 

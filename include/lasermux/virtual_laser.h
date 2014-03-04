@@ -73,6 +73,9 @@ public:
     sensor_msgs::LaserScanConstPtr generateScan();
 
 private:
+    // where the magic happens
+    void updateScanWithPC(const sensor_msgs::PointCloud2ConstPtr& pc);
+
     // latest ready-to-publish scan
     sensor_msgs::LaserScanPtr latest_scan_;
 

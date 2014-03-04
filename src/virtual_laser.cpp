@@ -26,6 +26,7 @@
 
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/LaserScan.h>
+#include <pcl_ros/transforms.h>
 
 namespace lasermux
 {
@@ -55,18 +56,28 @@ void VirtualLaser::setParams(
   angle_increment_ = angle_increment;
 }
 
+void VirtualLaser::updateScanWithPC(const sensor_msgs::PointCloud2ConstPtr& pc)
+{
+// TODO: implement something here
+}
+
 void VirtualLaser::takePointCloud(const sensor_msgs::PointCloud2ConstPtr& pc)
 {
-  // 1. filter point cloud
-  // 1.1 project point cloud on frame_id
   std::string our_frame = tf::resolve("/", frame_id_);
   std::string pc_frame = tf::resolve("/", pc->header.frame_id);
+  sensor_msgs::PointCloud2ConstPtr cloud = pc;
   if (our_frame != pc_frame)
   {
-
+    sensor_msgs::PointCloud2* c = new sensor_msgs::PointCloud2;
+    if(!pcl_ros::transformPointCloud(frame_id_, *pc, *c, tfl_))
+    {
+      ROS_ERROR("Could not transform point cloud");
+      return;
+    }
+    cloud.reset(c);
   }
-  // 1.2 project points on conic segments
-  // 2. update laserScan
+
+  updateScanWithPC(cloud);
 }
 
 void VirtualLaser::takeLaserScan(const sensor_msgs::LaserScanConstPtr& scan)
@@ -80,7 +91,7 @@ void VirtualLaser::takeLaserScan(const sensor_msgs::LaserScanConstPtr& scan)
     return;
   }
 
-  sensor_msgs::PointCloud2* cloud = new sensor_msgs::PointCloud2();
+  sensor_msgs::PointCloud2* cloud = new sensor_msgs::PointCloud2;
   projector_.transformLaserScanToPointCloud(frame_id_, *scan, *cloud, tfl_);
 
   takePointCloud(sensor_msgs::PointCloud2ConstPtr(cloud));
