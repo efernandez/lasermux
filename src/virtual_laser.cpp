@@ -59,8 +59,14 @@ void VirtualLaser::takePointCloud(const sensor_msgs::PointCloud2ConstPtr& pc)
 {
   // 1. filter point cloud
   // 1.1 project point cloud on frame_id
+  std::string our_frame = tf::resolve("/", frame_id_);
+  std::string pc_frame = tf::resolve("/", pc->header.frame_id);
+  if (our_frame != pc_frame)
+  {
+
+  }
   // 1.2 project points on conic segments
-  // 1.3 update laserScan
+  // 2. update laserScan
 }
 
 void VirtualLaser::takeLaserScan(const sensor_msgs::LaserScanConstPtr& scan)
