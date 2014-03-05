@@ -103,32 +103,24 @@ void VirtualLaser::updateScanWithPC(const sensor_msgs::PointCloud2ConstPtr& pc)
 
   foreach (const pcl::PointXYZ& p, cloud)
   {
-    // discard points outside of the aperture
     double ang = atan2(p.y, p.x);
     double min = angle_min_ - angle_increment_/2;
     double max = angle_max_ + angle_increment_/2;
+    double dist = sqrt(p.x*p.x + p.y*p.y);
+    double max_height = angle_increment_/2 * dist;
+    double reading = 0.0;
+
+    // discard points outside of the aperture
     if (ang < min || ang > max)
     {
       continue;
     }
 
-    // discard points that are too high/low
-    double dist = sqrt(p.x*p.x + p.y*p.y);
-    double max_height = angle_increment_/2 * dist;
-    if (fabs(p.z) > max_height)
-    {
-      continue;
-    }
-
-    // discard points that are too far/close
-    if (dist > range_max_ || dist < range_min_)
-    {
-      continue;
-    }
+    reading = dist;
 
     // update scan
     int index = (int)((ang - angle_min_) / angle_increment_ + 0.5);
-    latest_scan_->ranges[index] = dist;
+    latest_scan_->ranges[index] = reading;
   }
   latest_scan_->header.stamp = ros::Time::now();
 }
