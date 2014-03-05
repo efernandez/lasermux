@@ -9,7 +9,7 @@ public:
   LaserMuxNode(const ros::NodeHandle& nh = ros::NodeHandle("~"))
   : nh_(nh)
   {
-    vl_.setParams("base_footprint", 0.01, 10.0, -2.0, 2.0, 0.05);
+    vl_.setParams("base_footprint", 0.01, 10.0, -2.0, 2.0, 0.02);
     pub_ = nh_.advertise<sensor_msgs::LaserScan>("scan_out", 10);
     tmr_ = nh_.createTimer(ros::Duration(0.1), boost::bind(&LaserMuxNode::publish, this));
     sub_ = nh_.subscribe<sensor_msgs::LaserScan>("scans_in", 10,
