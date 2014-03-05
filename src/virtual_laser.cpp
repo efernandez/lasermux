@@ -101,6 +101,12 @@ void VirtualLaser::updateScanWithPC(const sensor_msgs::PointCloud2ConstPtr& pc)
   pcl::PointCloud<pcl::PointXYZ> cloud;
   pcl::fromROSMsg (*pc, cloud);
 
+  if (latest_scan_->ranges.size() != reading_age_.size())
+  {
+    reading_age_.clear();
+    reading_age_.resize(latest_scan_->ranges.size(), 0);
+  }
+
   foreach (const pcl::PointXYZ& p, cloud)
   {
     double ang = atan2(p.y, p.x);
@@ -121,8 +127,20 @@ void VirtualLaser::updateScanWithPC(const sensor_msgs::PointCloud2ConstPtr& pc)
     // update scan
     int index = (int)((ang - angle_min_) / angle_increment_ + 0.5);
     latest_scan_->ranges[index] = reading;
+    reading_age_[index] = 0;
+
   }
   latest_scan_->header.stamp = ros::Time::now();
+
+  // garbage-collecting
+  for (int i = 0; i < reading_age_.size(); ++i)
+  {
+    if (reading_age_[i] > 4)  // TODO: set this as a param
+    {
+      latest_scan_->ranges[i] = 0.0;
+    }
+    ++reading_age_[i];
+  }
 }
 
 void VirtualLaser::takePointCloud(const sensor_msgs::PointCloud2ConstPtr& pc)

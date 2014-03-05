@@ -94,6 +94,9 @@ private:
     double      angle_max_;
     double      angle_increment_;
 
+    // for garbage-collecting
+    std::vector<int> reading_age_;
+
     ros::NodeHandle nh_;
     tf::TransformListener tfl_;
     boost::shared_ptr<LaserFilt> scan_filter_;
