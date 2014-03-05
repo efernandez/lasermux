@@ -55,20 +55,20 @@ public:
             );
 
     /**
-     * @brief Update virtual laser with a point cloud
-     * @param pc PointCloud2 message
+     * \brief Update virtual laser with a point cloud
+     * \param pc PointCloud2 message
      */
     void takePointCloud(const sensor_msgs::PointCloud2ConstPtr& pc);
 
     /**
-     * @brief Update virtual laser with a laser scan
-     * @param scan LaserScan message
+     * \brief Update virtual laser with a laser scan
+     * \param scan LaserScan message
      */
     void takeLaserScan(const sensor_msgs::LaserScanConstPtr& scan);
 
     /**
-     * @brief Generate a LaserScan message as if read from the virtual sensor
-     * @return A LaserScan message, ready to publish
+     * \brief Generate a LaserScan message as if read from the virtual sensor
+     * \return A LaserScan message, ready to publish
      */
     sensor_msgs::LaserScanConstPtr generateScan();
 
