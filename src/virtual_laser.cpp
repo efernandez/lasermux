@@ -69,6 +69,31 @@ void VirtualLaser::setParams(
   latest_scan_->angle_max = angle_max_;
   latest_scan_->angle_increment = angle_increment_;
   latest_scan_->header.frame_id = frame_id_;
+
+  scan_filter_.reset(new tf::MessageFilter<sensor_msgs::LaserScan>(tfl_, frame_id_, 10, nh_));
+  pc_filter_.reset(new tf::MessageFilter<sensor_msgs::PointCloud2>(tfl_, frame_id_, 10, nh_));
+
+  scan_filter_->registerCallback(&VirtualLaser::scanTransformReady, this);
+  pc_filter_->registerCallback(&VirtualLaser::pcTransformReady, this);
+}
+
+void VirtualLaser::scanTransformReady(const sensor_msgs::LaserScanConstPtr& scan)
+{
+  sensor_msgs::PointCloud2* cloud = new sensor_msgs::PointCloud2;
+  projector_.transformLaserScanToPointCloud(frame_id_, *scan, *cloud, tfl_);
+  takePointCloud(sensor_msgs::PointCloud2ConstPtr(cloud));
+}
+
+void VirtualLaser::pcTransformReady(const sensor_msgs::PointCloud2ConstPtr& pc)
+{
+  sensor_msgs::PointCloud2* cloud = new sensor_msgs::PointCloud2;
+  if(!pcl_ros::transformPointCloud(frame_id_, *pc, *cloud, tfl_))
+  {
+    ROS_ERROR("Could not transform point cloud");
+    return;
+  }
+
+  updateScanWithPC(sensor_msgs::PointCloud2ConstPtr(cloud));
 }
 
 void VirtualLaser::updateScanWithPC(const sensor_msgs::PointCloud2ConstPtr& pc)
@@ -102,7 +127,7 @@ void VirtualLaser::updateScanWithPC(const sensor_msgs::PointCloud2ConstPtr& pc)
     }
 
     // update scan
-    int index = (int) (ang + angle_increment_/2 - angle_min_) / angle_increment_;
+    int index = (int)((ang - angle_min_) / angle_increment_ + 0.5);
     latest_scan_->ranges[index] = dist;
   }
   latest_scan_->header.stamp = ros::Time::now();
@@ -113,35 +138,31 @@ void VirtualLaser::takePointCloud(const sensor_msgs::PointCloud2ConstPtr& pc)
   std::string our_frame = tf::resolve("/", frame_id_);
   std::string pc_frame = tf::resolve("/", pc->header.frame_id);
   sensor_msgs::PointCloud2ConstPtr cloud = pc;
-  if (our_frame != pc_frame)
+  if (our_frame == pc_frame)
   {
-    sensor_msgs::PointCloud2* c = new sensor_msgs::PointCloud2;
-    if(!pcl_ros::transformPointCloud(frame_id_, *pc, *c, tfl_))
-    {
-      ROS_ERROR("Could not transform point cloud");
-      return;
-    }
-    cloud.reset(c);
+    // don't transform to the same frame
+    updateScanWithPC(cloud);
   }
-
-  updateScanWithPC(cloud);
+  else
+  {
+    pc_filter_->add(pc);
+  }
 }
 
 void VirtualLaser::takeLaserScan(const sensor_msgs::LaserScanConstPtr& scan)
 {
   ros::Time scan_time = scan->header.stamp +
     ros::Duration(scan->ranges.size()*scan->time_increment);
-  if (!tfl_.canTransform(scan->header.frame_id, frame_id_, scan_time))
+  std::string err;
+  if (tfl_.canTransform(frame_id_, scan->header.frame_id, scan_time, &err))
   {
-    ROS_ERROR_STREAM("Can not transform laser scan from frame "
-        << scan->header.frame_id << " at time " << scan_time);
-    return;
+    // don't wait if the transform is already available
+    scanTransformReady(scan);
   }
-
-  sensor_msgs::PointCloud2* cloud = new sensor_msgs::PointCloud2;
-  projector_.transformLaserScanToPointCloud(frame_id_, *scan, *cloud, tfl_);
-
-  takePointCloud(sensor_msgs::PointCloud2ConstPtr(cloud));
+  else
+  {
+    scan_filter_->add(scan);
+  }
 }
 
 sensor_msgs::LaserScanConstPtr VirtualLaser::generateScan()

@@ -25,6 +25,7 @@
 #include <ros/node_handle.h>
 #include <ros/message_forward.h>
 #include <tf/transform_listener.h>
+#include <tf/message_filter.h>
 #include <laser_geometry/laser_geometry.h>
 
 namespace sensor_msgs
@@ -73,8 +74,14 @@ public:
     sensor_msgs::LaserScanConstPtr generateScan();
 
 private:
+    typedef tf::MessageFilter<sensor_msgs::LaserScan> LaserFilt;
+    typedef tf::MessageFilter<sensor_msgs::PointCloud2> PCFilt;
+
     // where the magic happens
     void updateScanWithPC(const sensor_msgs::PointCloud2ConstPtr& pc);
+
+    void scanTransformReady(const sensor_msgs::LaserScanConstPtr& scan);
+    void pcTransformReady(const sensor_msgs::PointCloud2ConstPtr& pc);
 
     // latest ready-to-publish scan
     sensor_msgs::LaserScanPtr latest_scan_;
@@ -89,6 +96,8 @@ private:
 
     ros::NodeHandle nh_;
     tf::TransformListener tfl_;
+    boost::shared_ptr<LaserFilt> scan_filter_;
+    boost::shared_ptr<PCFilt> pc_filter_;
     laser_geometry::LaserProjection projector_;
 };
 
