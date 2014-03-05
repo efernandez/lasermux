@@ -2,8 +2,8 @@
 Changelog for package lasermux
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.0 (2014-03-05)
+------------------
 * Remove old readings in published scan
 * Remove unneeded filtering behaviors
 * Use message filter
