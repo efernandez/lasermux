@@ -73,6 +73,9 @@ void VirtualLaser::setParams(
   scan_filter_.reset(new tf::MessageFilter<sensor_msgs::LaserScan>(tfl_, frame_id_, 10, nh_));
   pc_filter_.reset(new tf::MessageFilter<sensor_msgs::PointCloud2>(tfl_, frame_id_, 10, nh_));
 
+  // fix for hokuyo laser publisher
+  scan_filter_->setTolerance(ros::Duration(0.1));
+
   scan_filter_->registerCallback(&VirtualLaser::scanTransformReady, this);
   pc_filter_->registerCallback(&VirtualLaser::pcTransformReady, this);
 }
@@ -161,10 +164,13 @@ void VirtualLaser::takePointCloud(const sensor_msgs::PointCloud2ConstPtr& pc)
 
 void VirtualLaser::takeLaserScan(const sensor_msgs::LaserScanConstPtr& scan)
 {
-  ros::Time scan_time = scan->header.stamp +
+  // TODO: the message filter should already do this magic. Check
+  // that it is the case.
+  ros::Time scan_time_first = scan->header.stamp;
+  ros::Time scan_time_last = scan->header.stamp +
     ros::Duration(scan->ranges.size()*scan->time_increment);
-  std::string err;
-  if (tfl_.canTransform(frame_id_, scan->header.frame_id, scan_time, &err))
+  if (tfl_.canTransform(frame_id_, scan->header.frame_id, scan_time_first)
+      && tfl_.canTransform(frame_id_, scan->header.frame_id, scan_time_last))
   {
     // don't wait if the transform is already available
     scanTransformReady(scan);
