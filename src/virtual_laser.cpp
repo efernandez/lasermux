@@ -125,7 +125,14 @@ void VirtualLaser::updateScanWithPC(const sensor_msgs::PointCloud2ConstPtr& pc)
       continue;
     }
 
-    reading = dist;
+    if (dist < range_min_)
+    {
+      reading = 0.0;
+    }
+    else
+    {
+      reading = dist;
+    }
 
     // update scan
     int index = (int)((ang - angle_min_) / angle_increment_ + 0.5);
