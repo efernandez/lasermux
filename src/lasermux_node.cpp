@@ -31,13 +31,48 @@ class LaserMuxNode
 {
 public:
   LaserMuxNode(const ros::NodeHandle& nh = ros::NodeHandle("~"))
-  : nh_(nh)
+    : root_nh_()
+    , nh_(nh)
   {
-    vl_.setParams("base_footprint", 1.0, 10.0, -2.0, 2.0, 0.02);
+    std::string frame_id = "base_footprint";
+    double range_min = 0.0, range_max = 100.0;
+    double angle_min = -M_PI, angle_max = M_PI, angle_increment = 0.01;
+    double frequency = 10.0;
+    int max_reading_age = 1;
+    double tolerance = 0.0;
+
+    nh_.param("frame_id", frame_id, frame_id);
+    nh_.param("range_min", range_min, range_min);
+    nh_.param("range_max", range_max, range_max);
+    nh_.param("angle_min", angle_min, angle_min);
+    nh_.param("angle_max", angle_max, angle_max);
+    nh_.param("angle_increment", angle_increment, angle_increment);
+    nh_.param("frequency", frequency, frequency);
+    nh_.param("max_reading_age", max_reading_age, max_reading_age);
+    nh_.param("tolerance", tolerance, tolerance);
+
+    vl_.setParams(frame_id,
+        range_min, range_max, angle_min, angle_max, angle_increment,
+        max_reading_age, tolerance);
+
     pub_ = nh_.advertise<sensor_msgs::LaserScan>("scan_out", 10);
-    tmr_ = nh_.createTimer(ros::Duration(0.1), boost::bind(&LaserMuxNode::publish, this));
-    sub_ = nh_.subscribe<sensor_msgs::LaserScan>("scans_in", 10,
-        boost::bind(&LaserMuxNode::scansCB, this, _1));
+    tmr_ = nh_.createTimer(ros::Duration(1./frequency),
+        boost::bind(&LaserMuxNode::publish, this));
+
+    std::vector<std::string> scans_in;
+    if (nh_.getParam("scans_in", scans_in))
+    {
+      sub_.resize(scans_in.size());
+      for (size_t i = 0; i < scans_in.size(); ++i)
+      {
+        sub_[i] = root_nh_.subscribe<sensor_msgs::LaserScan>(scans_in[i], 10,
+                boost::bind(&LaserMuxNode::scansCB, this, _1));
+      }
+    }
+    else
+    {
+      ROS_ERROR("No scans_in list provided, so no scans will be received!");
+    }
   }
 
 private:
@@ -51,11 +86,11 @@ private:
     pub_.publish(vl_.generateScan());
   }
 
-  ros::NodeHandle nh_;
+  ros::NodeHandle root_nh_, nh_;
   lasermux::VirtualLaser vl_;
   ros::Publisher pub_;
   ros::Timer tmr_;
-  ros::Subscriber sub_;
+  std::vector<ros::Subscriber> sub_;
 };
 
 int main(int argc, char** argv)
