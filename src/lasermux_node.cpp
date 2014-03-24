@@ -26,6 +26,9 @@
 #include <sensor_msgs/LaserScan.h>
 #include <ros/ros.h>
 #include <boost/bind.hpp>
+#include <boost/foreach.hpp>
+
+#define foreach BOOST_FOREACH
 
 class LaserMuxNode
 {
@@ -61,11 +64,10 @@ public:
     std::vector<std::string> scans_in;
     if (nh_.getParam("scans_in", scans_in))
     {
-      sub_.resize(scans_in.size());
-      for (size_t i = 0; i < scans_in.size(); ++i)
+      foreach (const std::string& scan_topic, scans_in)
       {
-        sub_[i] = root_nh_.subscribe<sensor_msgs::LaserScan>(scans_in[i], 10,
-                boost::bind(&LaserMuxNode::scansCB, this, _1));
+        sub_.push_back(root_nh_.subscribe<sensor_msgs::LaserScan>(scan_topic, 10,
+                       boost::bind(&LaserMuxNode::scansCB, this, _1)));
       }
     }
     else
