@@ -31,8 +31,7 @@ class LaserMuxNode
 {
 public:
   LaserMuxNode(const ros::NodeHandle& nh = ros::NodeHandle("~"))
-    : root_nh_()
-    , nh_(nh)
+  : nh_(nh)
   {
     std::string frame_id = "base_footprint";
     double range_min = 0.0, range_max = 100.0;
@@ -86,7 +85,8 @@ private:
     pub_.publish(vl_.generateScan());
   }
 
-  ros::NodeHandle root_nh_, nh_;
+  ros::NodeHandle root_nh_;
+  ros::NodeHandle nh_;
   lasermux::VirtualLaser vl_;
   ros::Publisher pub_;
   ros::Timer tmr_;
