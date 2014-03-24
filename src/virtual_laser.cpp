@@ -52,7 +52,9 @@ void VirtualLaser::setParams(
     double range_max,
     double angle_min,
     double angle_max,
-    double angle_increment
+    double angle_increment,
+    int max_reading_age,
+    double tolerance
     )
 {
   frame_id_ = frame_id;
@@ -61,6 +63,8 @@ void VirtualLaser::setParams(
   angle_min_ = angle_min;
   angle_max_ = angle_max;
   angle_increment_ = angle_increment;
+  max_reading_age_ = max_reading_age;
+  tolerance_ = tolerance;
 
   latest_scan_->ranges.resize((int)(angle_max_ - angle_min_)/angle_increment_ + 1);
   latest_scan_->range_min = range_min_;
@@ -74,7 +78,7 @@ void VirtualLaser::setParams(
   pc_filter_.reset(new tf::MessageFilter<sensor_msgs::PointCloud2>(tfl_, frame_id_, 10, nh_));
 
   // fix for hokuyo laser publisher
-  scan_filter_->setTolerance(ros::Duration(0.1));
+  scan_filter_->setTolerance(ros::Duration(tolerance_));
 
   scan_filter_->registerCallback(&VirtualLaser::scanTransformReady, this);
   pc_filter_->registerCallback(&VirtualLaser::pcTransformReady, this);
@@ -145,7 +149,7 @@ void VirtualLaser::updateScanWithPC(const sensor_msgs::PointCloud2ConstPtr& pc)
   // garbage-collecting
   for (int i = 0; i < reading_age_.size(); ++i)
   {
-    if (reading_age_[i] > 4)  // TODO: set this as a param
+    if (reading_age_[i] > max_reading_age_)
     {
       latest_scan_->ranges[i] = 0.0;
     }

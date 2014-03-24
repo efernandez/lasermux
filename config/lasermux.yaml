@@ -1,0 +1,16 @@
+frame_id: base_footprint
+
+range_min:  1.0
+range_max: 10.0
+
+angle_min      : -2.0
+angle_max      :  2.0
+angle_increment:  0.02
+
+frequency: 10.0
+
+max_reading_age: 4
+
+tolerance: 0.1
+
+scans_in: [left_scan, right_scan]

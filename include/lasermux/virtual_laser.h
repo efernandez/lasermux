@@ -52,7 +52,9 @@ public:
             double range_max,
             double angle_min,
             double angle_max,
-            double angle_increment
+            double angle_increment,
+            int max_reading_age,
+            double tolerance
             );
 
     /**
@@ -93,6 +95,8 @@ private:
     double      angle_min_;
     double      angle_max_;
     double      angle_increment_;
+    int         max_reading_age_;
+    double      tolerance_;
 
     // for garbage-collecting
     std::vector<int> reading_age_;
