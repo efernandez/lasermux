@@ -50,6 +50,8 @@ void VirtualLaser::setParams(
     const std::string& frame_id,
     double range_min,
     double range_max,
+    double z_min,
+    double z_max,
     double angle_min,
     double angle_max,
     double angle_increment,
@@ -60,6 +62,8 @@ void VirtualLaser::setParams(
   frame_id_ = frame_id;
   range_min_ = range_min;
   range_max_ = range_max;
+  z_min_ = z_min;
+  z_max_ = z_max;
   angle_min_ = angle_min;
   angle_max_ = angle_max;
   angle_increment_ = angle_increment;
@@ -129,6 +133,12 @@ void VirtualLaser::updateScanWithPC(const sensor_msgs::PointCloud2ConstPtr& pc)
       continue;
     }
 
+    // discard points too low or too high
+    if (p.z < z_min_ || p.z > z_max_)
+    {
+      continue;
+    }
+
     if (dist < range_min_)
     {
       reading = 0.0;
@@ -142,8 +152,8 @@ void VirtualLaser::updateScanWithPC(const sensor_msgs::PointCloud2ConstPtr& pc)
     int index = (int)((ang - angle_min_) / angle_increment_ + 0.5);
     latest_scan_->ranges[index] = reading;
     reading_age_[index] = 0;
-
   }
+
   latest_scan_->header.stamp = ros::Time::now();
 
   // garbage-collecting

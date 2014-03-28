@@ -48,6 +48,8 @@ public:
      */
     void setParams(
             const std::string& frame_id,
+            double z_min,
+            double z_max,
             double range_min,
             double range_max,
             double angle_min,
@@ -92,6 +94,8 @@ private:
     std::string frame_id_;
     double      range_min_;
     double      range_max_;
+    double      z_min_;
+    double      z_max_;
     double      angle_min_;
     double      angle_max_;
     double      angle_increment_;

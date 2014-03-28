@@ -38,12 +38,15 @@ public:
   {
     std::string frame_id = "base_footprint";
     double range_min = 0.0, range_max = 100.0;
+    double z_min = -100.0, z_max = 100.0;
     double angle_min = -M_PI, angle_max = M_PI, angle_increment = 0.01;
     double frequency = 10.0;
     int max_reading_age = 1;
     double tolerance = 0.0;
 
     nh_.param("frame_id", frame_id, frame_id);
+    nh_.param("z_min", z_min, z_min);
+    nh_.param("z_max", z_max, z_max);
     nh_.param("range_min", range_min, range_min);
     nh_.param("range_max", range_max, range_max);
     nh_.param("angle_min", angle_min, angle_min);
@@ -54,7 +57,8 @@ public:
     nh_.param("tolerance", tolerance, tolerance);
 
     vl_.setParams(frame_id,
-        range_min, range_max, angle_min, angle_max, angle_increment,
+        range_min, range_max, z_min, z_max,
+        angle_min, angle_max, angle_increment,
         max_reading_age, tolerance);
 
     pub_ = nh_.advertise<sensor_msgs::LaserScan>("scan_out", 10);
