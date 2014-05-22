@@ -7,6 +7,9 @@ angle_min      : -2.0
 angle_max      :  2.0
 angle_increment:  0.02
 
+pitch_abs_max: !degrees 5
+roll_abs_max : !degrees 1
+
 frequency: 10.0
 
 max_reading_age: 4

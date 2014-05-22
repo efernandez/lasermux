@@ -55,6 +55,8 @@ void VirtualLaser::setParams(
     double angle_min,
     double angle_max,
     double angle_increment,
+    double pitch_abs_max,
+    double roll_abs_max,
     int max_reading_age,
     double tolerance
     )
@@ -90,6 +92,7 @@ void VirtualLaser::setParams(
 
 void VirtualLaser::scanTransformReady(const sensor_msgs::LaserScanConstPtr& scan)
 {
+  // @todo filter scan when abs(pitch) > max_abs_pitch_ || abs(roll) > max_abs_roll_
   sensor_msgs::PointCloud2* cloud = new sensor_msgs::PointCloud2;
   projector_.transformLaserScanToPointCloud(frame_id_, *scan, *cloud, tfl_);
   takePointCloud(sensor_msgs::PointCloud2ConstPtr(cloud));

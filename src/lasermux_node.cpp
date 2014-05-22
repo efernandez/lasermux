@@ -40,6 +40,7 @@ public:
     double range_min = 0.0, range_max = 100.0;
     double z_min = -100.0, z_max = 100.0;
     double angle_min = -M_PI, angle_max = M_PI, angle_increment = 0.01;
+    double pitch_abs_max = M_PI, roll_abs_max = M_PI;
     double frequency = 10.0;
     int max_reading_age = 1;
     double tolerance = 0.0;
@@ -52,6 +53,8 @@ public:
     nh_.param("angle_min", angle_min, angle_min);
     nh_.param("angle_max", angle_max, angle_max);
     nh_.param("angle_increment", angle_increment, angle_increment);
+    nh_.param("pitch_abs_max", pitch_abs_max, pitch_abs_max);
+    nh_.param("roll_abs_max", roll_abs_max, roll_abs_max);
     nh_.param("frequency", frequency, frequency);
     nh_.param("max_reading_age", max_reading_age, max_reading_age);
     nh_.param("tolerance", tolerance, tolerance);
@@ -59,6 +62,7 @@ public:
     vl_.setParams(frame_id,
         range_min, range_max, z_min, z_max,
         angle_min, angle_max, angle_increment,
+        pitch_abs_max, roll_abs_max,
         max_reading_age, tolerance);
 
     pub_ = nh_.advertise<sensor_msgs::LaserScan>("scan_out", 10);

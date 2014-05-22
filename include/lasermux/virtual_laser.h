@@ -55,6 +55,8 @@ public:
             double angle_min,
             double angle_max,
             double angle_increment,
+            double pitch_abs_max,
+            double roll_abs_max,
             int max_reading_age,
             double tolerance
             );
